@@ -17,6 +17,16 @@ import transferRoutes from './routes/transfer.js';
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Generate a JWT secret if not provided
+if (!process.env.JWT_SECRET) {
+    if (process.env.VERCEL) {
+        console.error("Vercel error: JWT_SECRET is missing in environment variables.");
+    } else {
+        process.env.JWT_SECRET = crypto.randomBytes(64).toString('hex');
+        console.log('⚡ Auto-generated JWT_SECRET for development');
+    }
+}
+
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -40,32 +50,6 @@ app.use(
     })
 );
 
-// Routes
-app.use('/api', authRoutes);
-app.use('/api', balanceRoutes);
-app.use('/api', tokenRoutes);
-app.use('/api', transferRoutes);
-
-// Health check
-app.get('/api/health', (req, res) => {
-    res.json({ status: 'OK', timestamp: new Date().toISOString() });
-});
-
-// Global error handler
-app.use((err, req, res, next) => {
-    console.error('Unhandled error:', err);
-    res.status(500).json({
-        success: false,
-        message: 'Internal server error.',
-    });
-});
-
-// Generate a JWT secret if not provided
-if (!process.env.JWT_SECRET) {
-    process.env.JWT_SECRET = crypto.randomBytes(64).toString('hex');
-    console.log('⚡ Auto-generated JWT_SECRET for development');
-}
-
 // Connect to MongoDB
 let isConnected = false;
 const connectDB = async () => {
@@ -80,7 +64,7 @@ const connectDB = async () => {
         if (!mongoUri || mongoUri.includes('<DB_USER>') || mongoUri.includes('<DB_PASSWORD>')) {
             if (process.env.VERCEL) {
                 console.error("Vercel error: MONGO_URI is missing or invalid in environment variables.");
-                return;
+                throw new Error("MONGO_URI not configured");
             }
             console.log('📦 No MongoDB Atlas URI configured. Starting in-memory MongoDB...');
             const { MongoMemoryServer } = await import('mongodb-memory-server');
@@ -106,8 +90,28 @@ app.use(async (req, res, next) => {
         await connectDB();
         next();
     } catch (err) {
-        res.status(500).json({ success: false, message: 'Database connection failed.' });
+        return res.status(500).json({ success: false, message: 'Database connection failed. Did you configure MONGO_URI?' });
     }
+});
+
+// Routes
+app.use('/api', authRoutes);
+app.use('/api', balanceRoutes);
+app.use('/api', tokenRoutes);
+app.use('/api', transferRoutes);
+
+// Health check
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
+// Global error handler
+app.use((err, req, res, next) => {
+    console.error('Unhandled error:', err);
+    res.status(500).json({
+        success: false,
+        message: 'Internal server error.',
+    });
 });
 
 if (!process.env.VERCEL) {
