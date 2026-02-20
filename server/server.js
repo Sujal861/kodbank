@@ -66,13 +66,22 @@ if (!process.env.JWT_SECRET) {
     console.log('⚡ Auto-generated JWT_SECRET for development');
 }
 
-// Connect to MongoDB and start server
-const startServer = async () => {
+// Connect to MongoDB
+let isConnected = false;
+const connectDB = async () => {
+    if (isConnected || mongoose.connection.readyState === 1) {
+        isConnected = true;
+        return;
+    }
     try {
         let mongoUri = process.env.MONGO_URI;
 
         // If no MongoDB URI is configured, use in-memory MongoDB for development
         if (!mongoUri || mongoUri.includes('<DB_USER>') || mongoUri.includes('<DB_PASSWORD>')) {
+            if (process.env.VERCEL) {
+                console.error("Vercel error: MONGO_URI is missing or invalid in environment variables.");
+                return;
+            }
             console.log('📦 No MongoDB Atlas URI configured. Starting in-memory MongoDB...');
             const { MongoMemoryServer } = await import('mongodb-memory-server');
             const mongod = await MongoMemoryServer.create();
@@ -83,18 +92,30 @@ const startServer = async () => {
         }
 
         await mongoose.connect(mongoUri);
+        isConnected = true;
         console.log('✅ Connected to MongoDB');
-
-        app.listen(PORT, () => {
-            console.log(`\n🚀 Kodbank server running on http://localhost:${PORT}`);
-            console.log('   Ready to accept requests!\n');
-        });
     } catch (error) {
-        console.error('❌ Failed to start server:', error.message);
-        process.exit(1);
+        console.error('❌ Failed to connect to DB:', error.message);
+        throw error;
     }
 };
 
-startServer();
+// Database connection middleware for Serverless
+app.use(async (req, res, next) => {
+    try {
+        await connectDB();
+        next();
+    } catch (err) {
+        res.status(500).json({ success: false, message: 'Database connection failed.' });
+    }
+});
+
+if (!process.env.VERCEL) {
+    app.listen(PORT, async () => {
+        await connectDB();
+        console.log(`\n🚀 Kodbank server running on http://localhost:${PORT}`);
+        console.log('   Ready to accept requests!\n');
+    });
+}
 
 export default app;
