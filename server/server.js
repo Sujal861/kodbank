@@ -21,9 +21,21 @@ const PORT = process.env.PORT || 5000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+// Support multiple origins (comma-separated in CLIENT_URL env var)
+const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:5173')
+    .split(',')
+    .map(s => s.trim());
+
 app.use(
     cors({
-        origin: process.env.CLIENT_URL || 'http://localhost:5173',
+        origin: function (origin, callback) {
+            // Allow requests with no origin (mobile apps, curl, etc.)
+            if (!origin) return callback(null, true);
+            if (allowedOrigins.some(allowed => origin === allowed || origin.endsWith('.vercel.app'))) {
+                return callback(null, true);
+            }
+            callback(new Error('Not allowed by CORS'));
+        },
         credentials: true,
     })
 );

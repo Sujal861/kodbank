@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api/axios';
 
 const AuthContext = createContext(null);
 
@@ -35,7 +35,7 @@ export const AuthProvider = ({ children }) => {
 
     const logout = async () => {
         try {
-            await axios.post('/api/logout', {}, { withCredentials: true });
+            await api.post('/api/logout', {});
         } catch (err) {
             console.error('Logout API error:', err);
         }

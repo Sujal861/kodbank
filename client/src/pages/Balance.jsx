@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/axios';
 import toast from 'react-hot-toast';
 import confetti from 'canvas-confetti';
 
@@ -19,7 +19,7 @@ const Balance = () => {
     const fetch = async () => {
         setLoading(true); setRevealed(false);
         try {
-            const res = await axios.get('/api/balance', { withCredentials: true });
+            const res = await api.get('/api/balance');
             setBalance(res.data.data.balance); setUserData(res.data.data);
             setRevealed(true); toast.success('Balance loaded!'); setTimeout(fire, 300);
         } catch (err) {

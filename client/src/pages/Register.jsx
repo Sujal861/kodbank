@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/axios';
 import toast from 'react-hot-toast';
 
 const Register = () => {
@@ -17,7 +17,7 @@ const Register = () => {
         if (form.password.length < 6) { setError('Password must be at least 6 characters'); return; }
         setLoading(true);
         try {
-            const res = await axios.post('/api/register', { username: form.username, email: form.email, password: form.password, phone: form.phone });
+            const res = await api.post('/api/register', { username: form.username, email: form.email, password: form.password, phone: form.phone });
             toast.success(res.data.message || 'Account created!');
             setTimeout(() => navigate('/login'), 1200);
         } catch (err) {

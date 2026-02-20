@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/axios';
 import toast from 'react-hot-toast';
 
 const TokenView = () => {
@@ -12,7 +12,7 @@ const TokenView = () => {
     const fetch = async () => {
         setLoading(true);
         try {
-            const res = await axios.get('/api/token', { withCredentials: true });
+            const res = await api.get('/api/token');
             setData(res.data.data); toast.success('Token loaded!');
         } catch (err) {
             if (err.response?.status === 401) { toast.error('Session expired'); navigate('/login'); return; }

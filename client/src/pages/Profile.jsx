@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/axios';
 import toast from 'react-hot-toast';
 
 const Profile = () => {
@@ -11,7 +11,7 @@ const Profile = () => {
     useEffect(() => {
         const load = async () => {
             try {
-                const res = await axios.get('/api/profile', { withCredentials: true });
+                const res = await api.get('/api/profile');
                 setData(res.data.data);
             } catch (err) {
                 if (err.response?.status === 401) { navigate('/login'); return; }

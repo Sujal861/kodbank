@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/axios';
 import toast from 'react-hot-toast';
 
 const History = () => {
@@ -13,7 +13,7 @@ const History = () => {
     const fetch = async (p = 1) => {
         setLoading(true);
         try {
-            const res = await axios.get(`/api/transactions?page=${p}&limit=15`, { withCredentials: true });
+            const res = await api.get(`/api/transactions?page=${p}&limit=15`);
             setTxns(res.data.data.transactions);
             setPagination(res.data.data.pagination);
             setPage(p);

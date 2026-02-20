@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/axios';
 import toast from 'react-hot-toast';
 import confetti from 'canvas-confetti';
 
@@ -19,7 +19,7 @@ const Transfer = () => {
         if (Number(form.amount) < 1) { setError('Minimum amount is ₹1.'); return; }
         setLoading(true);
         try {
-            const res = await axios.post('/api/transfer', { recipient: form.recipient, amount: Number(form.amount), note: form.note }, { withCredentials: true });
+            const res = await api.post('/api/transfer', { recipient: form.recipient, amount: Number(form.amount), note: form.note });
             setSuccess(res.data);
             toast.success(res.data.message || 'Transfer successful!');
             confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 }, colors: ['#e84057', '#ffc857', '#5ce0d8', '#a78bfa'], zIndex: 9999 });

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 
@@ -17,7 +17,7 @@ const Login = () => {
         e.preventDefault(); setError('');
         setLoading(true);
         try {
-            const res = await axios.post('/api/login', { email: form.email, password: form.password }, { withCredentials: true });
+            const res = await api.post('/api/login', { email: form.email, password: form.password });
             login(res.data.user);
             toast.success('Welcome back! ⚡');
             navigate('/dashboard');
